@@ -230,7 +230,12 @@ If you use or refer to this tutorial, please cite it as:
 
 ## License
 
-The text and figures of this tutorial are released for educational and
-research use; please credit the author when reusing material. The
-accompanying code (`code/figures.py`) and the Claude Code skill are
-released under the MIT License.
+This repository is dual-licensed:
+
+- **Tutorial paper, student workbook, and figures** (`paper/`,
+  `appendix/`, `paper/figs/`) are released under the
+  [PolyForm Noncommercial License 1.0.0](LICENSE). Noncommercial use
+  (teaching, research, personal study) is permitted; please credit the
+  author. Contact the author for commercial licensing.
+- **Code** (`code/figures.py`) and the **Claude Code skill**
+  (`skill/stateval-review/`) are released under the MIT License.
