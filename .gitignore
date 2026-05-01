@@ -21,3 +21,6 @@ nul
 # Internal planning (not part of the public artifact)
 tasks/
 .claude/
+
+# Derived arxiv-upload bundle (regenerated as needed)
+arxiv-submission/

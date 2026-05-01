@@ -213,7 +213,7 @@ main paper.
     \item Independent variables: scheduling policy (FIFO, SRPT); offered load $\rho$; job-size distribution (truncated Pareto with $\alpha \in \{1.5, 2.5\}$, exponential).
     \item Regimes: $\rho \in \{0.3, 0.5, 0.7, 0.9\}$ crossed with the three job-size distributions; full $4 \times 3$ grid.
     \item Number of seeds: 30 per cell; chosen to give 80\% power against a Cohen's $d = 0.5$ at $\alpha = 0.05$ (paired).
-    \item Pairing / blocking plan: common random numbers --- one workload per seed, replayed under each policy; per-seed differences are the analysis unit.
+    \item Pairing / blocking plan: common random numbers (one workload per seed, replayed under each policy); per-seed differences are the analysis unit.
     \item Statistical summary: per-cell mean of paired differences (FIFO $-$ SRPT) with 95\% bootstrap CI on the difference; $p_{99}$ reported per cell.
     \item Statistical test: paired Wilcoxon signed-rank on per-seed latency differences; significance reported alongside, not in place of, the CI.
     \item Figures: latency CCDF on log--log axes; interaction plot of mean latency vs.\ $\rho$ with paired bootstrap CIs; bootstrap distribution of the per-seed difference.
