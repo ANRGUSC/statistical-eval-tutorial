@@ -1,0 +1,23 @@
+# LaTeX build artifacts
+*.aux
+*.log
+*.out
+*.bbl
+*.blg
+*.toc
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+
+# Python
+__pycache__/
+*.pyc
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+nul
+
+# Internal planning (not part of the public artifact)
+tasks/
+.claude/
