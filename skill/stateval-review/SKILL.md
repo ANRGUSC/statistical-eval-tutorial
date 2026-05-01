@@ -74,8 +74,9 @@ sim-validation.
 
 ### 4. Audit category by category
 
-Load `references/principles.md`. For each applicable category, scan the
-paper for the listed symptoms and record findings.
+Load `references/principles.md` (27 categories total). For each
+applicable category, scan the paper for the listed symptoms and record
+findings.
 
 A finding has four parts:
 
@@ -199,7 +200,7 @@ Return a clear error and stop:
 
 ## Files
 
-- `references/principles.md` — the 24-category audit knowledge base.
+- `references/principles.md` — the 27-category audit knowledge base.
   Loaded in step 4. Contains principle / symptoms / fix for each.
 - `references/paper-types.md` — type-detection heuristics and per-type
   category filters. Loaded in step 3.
@@ -207,3 +208,12 @@ Return a clear error and stop:
   `stateval-review.md`. Loaded in step 8.
 - `references/checklist.md` — flat pre-submission checklist mirroring
   the tutorial's Appendix A. Loaded in step 7.
+
+## Companion materials in the source repository
+
+The `statistical-eval-tutorial` repository contains a student companion
+workbook (`appendix/student-appendix.tex` / `.pdf`) with a project-type
+translation table, an evaluation-plan worksheet (with a worked FIFO
+vs. SRPT example), an autopsy of a fragile evaluation, and exercises.
+When a finding would benefit from a fillable template (worksheet) or a
+worked example (autopsy), refer the student to the workbook by name.

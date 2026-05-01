@@ -1,7 +1,7 @@
 # Paper-type detection and per-type audit filters
 
 Use the heuristics below to classify the paper, then use the per-type
-filter to decide which of the 24 audit categories in `principles.md`
+filter to decide which of the 27 audit categories in `principles.md`
 apply to this paper.
 
 ## Detection heuristics
@@ -82,7 +82,7 @@ These are not experimental papers; the audit categories do not apply.
 
 ## Per-type audit filter
 
-The 24 categories from `principles.md`, with which apply per type.
+The 27 categories from `principles.md`, with which apply per type.
 `Y` = audit; `N` = skip; `*` = audit only if relevant signals are
 present in the paper.
 
@@ -91,43 +91,54 @@ present in the paper.
 | 1 | Hypothesis stated and falsifiable | Y | Y | Y | Y |
 | 2 | Strong baseline; baseline ≠ ablation | Y | Y | Y | Y |
 | 3 | Repeated trials, seed count, rationale | Y | Y | Y | Y |
-| 4 | Unit of analysis / pseudoreplication | Y | Y | Y | Y |
-| 5 | Variability reporting (mean alone is not enough) | Y | Y | Y | Y |
-| 6 | CI of the difference, not separate error bars | Y | Y | Y | Y |
-| 7 | CI construction (bootstrap / normal / t) | Y | Y | Y | Y |
-| 8 | Test choice: paired/unpaired, parametric/non-param | Y | Y | Y | Y |
-| 9 | Effect size leads, p-value supports | Y | Y | Y | Y |
-| 10 | Linear regression diagnostics | * | * | * | * |
-| 11 | Multi-factor design: OFAT, factorial, interactions | Y | Y | * | Y |
-| 12 | Multiple comparisons correction | Y | Y | Y | Y |
-| 13 | Out-of-sample validation; train/val/test | * | Y | * | * |
-| 14 | Ablation studies | Y | Y | * | Y |
-| 15 | Latency-specific pitfalls | * | * | N | * |
-| 16 | Reporting and figure design | Y | Y | Y | Y |
-| 17 | Random seeds and non-determinism | Y | Y | * | * |
-| 18 | Sample size and power | Y | Y | Y | Y |
-| 19 | Time-correlated data and block bootstrap | * | * | * | * |
-| 20 | Simulation V&V | * | * | Y | * |
-| 21 | ML metrics matched to task | N | Y | * | * |
-| 22 | Reproducibility | Y | Y | Y | Y |
-| 23 | Equivalence / non-inferiority claims | * | * | * | * |
-| 24 | Primary vs. secondary metrics | Y | Y | Y | Y |
+| 4 | Randomization, blocking, order effects | Y | * | * | Y |
+| 5 | Primary and secondary metrics named in advance | Y | Y | Y | Y |
+| 6 | Unit of analysis / pseudoreplication | Y | Y | Y | Y |
+| 7 | Variability reporting (mean alone is not enough) | Y | Y | Y | Y |
+| 8 | CI construction matches the data | Y | Y | Y | Y |
+| 9 | CI of the difference for paired comparisons | Y | Y | Y | Y |
+| 10 | Test choice: paired/unpaired, parametric/non-param, assumptions | Y | Y | Y | Y |
+| 11 | Effect size leads, p-value supports (estimation-first) | Y | Y | Y | Y |
+| 12 | Linear regression diagnostics | * | * | * | * |
+| 13 | Multi-factor design: OFAT, factorial, interactions | Y | Y | * | Y |
+| 14 | Multiple comparisons correction | Y | Y | Y | Y |
+| 15 | Tradeoffs and Pareto fronts | Y | Y | * | Y |
+| 16 | Equivalence and non-inferiority claims | * | * | * | * |
+| 17 | Out-of-sample validation; train/val/test | * | Y | * | * |
+| 18 | Ablation studies | Y | Y | * | Y |
+| 19 | Latency-specific pitfalls | * | * | N | * |
+| 20 | Reporting and figure design | Y | Y | Y | Y |
+| 21 | Random seeds and non-determinism | Y | Y | * | * |
+| 22 | Sample size and power | Y | Y | Y | Y |
+| 23 | Outliers, failed runs, exclusion rules | Y | Y | * | Y |
+| 24 | Time-correlated data and block bootstrap | * | * | * | * |
+| 25 | Simulation V&V | * | * | Y | * |
+| 26 | ML evaluation: leakage, splits, metrics | N | Y | * | * |
+| 27 | Reproducibility | Y | Y | Y | Y |
 
 `*` triggers if the paper contains relevant signals:
 
-- Cat 10: paper reports a regression or correlation.
-- Cat 11 (theory+exp): the experimental section sweeps multiple knobs.
-- Cat 13 (non-ML types): paper reports tuning + headline numbers.
-- Cat 14 (theory+exp): paper proposes a multi-component method.
-- Cat 15: paper measures latency or response time.
-- Cat 17 (theory+exp / hardware): paper reports stochastic
+- Cat 4 (applied-ml / theory+exp): paper runs experiments on a
+  physical machine or testbed where order/thermal/contention
+  confounders are plausible.
+- Cat 12: paper reports a regression or correlation.
+- Cat 13 (theory+exp): the experimental section sweeps multiple
+  knobs.
+- Cat 15 (theory+exp): paper reports cost/overhead alongside its
+  primary metric.
+- Cat 16: paper claims a tie, "no worse than," or "same X with less
+  Y" comparison.
+- Cat 17 (non-ML types): paper reports tuning + headline numbers.
+- Cat 18 (theory+exp): paper proposes a multi-component method.
+- Cat 19: paper measures latency or response time.
+- Cat 21 (theory+exp / hardware): paper reports stochastic
   experiments with seeds or stochastic platforms.
-- Cat 19: paper reports time-series measurements (per-second
+- Cat 23 (theory+exp): paper might exclude failed runs.
+- Cat 24: paper reports time-series measurements (per-second
   throughput, per-packet inter-arrival times, etc.).
-- Cat 20 (non-theory): the paper relies on a simulator for its
+- Cat 25 (non-theory): the paper relies on a simulator for its
   headline numbers.
-- Cat 21 (non-ML): paper computes ML-style metrics (e.g., a systems
-  paper that includes a classifier as a sub-component).
-- Cat 23: paper claims a tie or "no worse than" baseline.
+- Cat 26 (non-ML): paper computes ML-style metrics (e.g., a systems
+  paper with a classifier sub-component).
 
 Always audit the un-starred (Y) categories for the matched type.
