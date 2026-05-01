@@ -1,0 +1,310 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath, amssymb}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{framed}
+\usepackage{caption}
+\usepackage{array}
+% Pull labels from the main paper so cross-references resolve.
+% Compile ../paper/stateval.tex first; xr reads its .aux file to recover labels.
+\usepackage{xr}
+\externaldocument[main-]{../paper/stateval}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!50!black,
+    citecolor=blue!50!black,
+    urlcolor=blue!50!black
+}
+
+\definecolor{shadecolor}{rgb}{0.96,0.96,0.92}
+
+\title{\textbf{Companion Workbook to ``How to Do Statistical Evaluations in
+ECE/CS Papers''}\\
+\large Project-Type Tables, an Evaluation-Plan Worksheet, an Autopsy of a
+Fragile Evaluation, and Exercises}
+
+\author{Bhaskar Krishnamachari\\
+University of Southern California\\
+\texttt{bkrishna@usc.edu}}
+
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This is a companion workbook for the tutorial \emph{How to Do Statistical
+Evaluations in ECE/CS Papers} (the ``main paper''). It contains the
+student-facing scaffolding that did not fit in the main paper: a project-type
+translation table for matching common ECE/CS evaluation patterns to
+appropriate methods, an evaluation-plan worksheet to fill out before running
+experiments, an autopsy of a typical fragile evaluation and how to fix it,
+and a set of exercises that map to the main paper's sections. It is intended
+to be printed out, marked up, and used as a teaching artifact for student
+research projects. References to sections beginning with \S\ldots refer to
+the main paper.
+\end{abstract}
+
+\section{Choose Your Evaluation Type}
+\label{sec:project-type}
+
+ECE/CS students work on a wide range of empirical projects, and the unit of
+analysis, the dominant metric, the most common mistake, and the recommended
+method differ noticeably across them. Table~\ref{tab:project-type} lays out
+the most common project types side-by-side. Students should locate
+themselves in the table before reading the main paper, and reread the row
+that applies to their project before each milestone.
+
+\begin{table}[h]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{p{0.18\linewidth}p{0.16\linewidth}p{0.18\linewidth}p{0.20\linewidth}p{0.20\linewidth}}
+\toprule
+Project type & Unit of analysis & Typical metrics & Common mistake & Recommended default \\
+\midrule
+Wireless / network simulation & seed / topology / workload & delay, PDR, throughput, energy & treating packets as independent & paired seeds, bootstrap CIs, multiple regimes \\
+Systems benchmark & run / machine / configuration & latency, throughput, $p_{95}$, $p_{99}$ & ignoring warmup, order, thermal effects & randomized order, warmup discarded, CDFs, CIs \\
+ML classifier & held-out instance / group / time window & accuracy, AP, $F_1$, AUROC, calibration & tuning the threshold on the test set & validation/test split, AP for imbalance, paired bootstrap \\
+Scheduler / optimizer & workload instance / seed & makespan, latency, utilization & only testing easy workloads & factorial regimes, ablations, paired tests \\
+Embedded / IoT experiment & device / run / environment & energy, packet loss, deadline misses & hidden hardware or environment confounders & blocking, calibration, repeated trials \\
+Simulation paper & scenario / seed & depends on the model & trusting simulator output blindly & sanity checks, conservation, baseline reproduction \\
+\bottomrule
+\end{tabular}
+\caption{Project-type translation table. Find the row that matches your
+project and use it as the lens through which to read the main paper. The
+``unit of analysis'' column is what the main paper calls the unit of
+analysis (\S4.1 of the main paper); the ``recommended default'' column is
+the minimum-viable method, not the only acceptable one.}
+\label{tab:project-type}
+\end{table}
+
+\paragraph{Translation boxes.} Three short translations of the main paper's
+running scheduling example to other ECE/CS subfields.
+
+\begin{shaded*}
+\noindent\textbf{Wireless networking.}
+Unit of analysis: topology / seed.
+Primary metric: packet delivery ratio (PDR), latency, routing overhead, energy.
+Pitfall: treating packets as independent (\S4.1).
+Good plot: PDR vs.\ mobility speed with paired bootstrap CIs.
+\end{shaded*}
+
+\begin{shaded*}
+\noindent\textbf{ML / anomaly detection.}
+Unit of analysis: held-out flow / device / user / time window.
+Primary metric: AP (under class imbalance), AUROC, recall at fixed
+false-positive rate.
+Pitfall: leakage across time or devices.
+Good plot: precision--recall curve with calibration plot.
+\end{shaded*}
+
+\begin{shaded*}
+\noindent\textbf{Embedded systems.}
+Unit of analysis: repeated run / device / environment block.
+Primary metric: energy, latency, missed deadlines.
+Pitfall: temperature, battery state, background tasks (main \S\ref{main-sec:randomization}).
+Good plot: energy vs.\ latency tradeoff.
+\end{shaded*}
+
+\section{Anatomy of a Fragile Evaluation}
+\label{sec:autopsy}
+
+A fragile evaluation often \emph{looks} fine on first read. The headline
+sounds confident, the numbers are big, and the statistical machinery is
+either absent or perfunctory. Below is a typical example, lightly
+fictionalized, of the kind of single-line claim that recurs in beginning
+student papers. We then take it apart and rewrite it.
+
+\begin{shaded*}
+\noindent\emph{``Our protocol improves throughput by 35\%.''}
+\end{shaded*}
+
+The sentence has at least nine separate problems, none of which are
+visible on the surface:
+
+\begin{enumerate}[leftmargin=*, itemsep=1pt]
+    \item One topology was used.
+    \item One seed was used.
+    \item The baseline is a strawman version of the closest published method.
+    \item No confidence interval is reported, on the difference or on either arm.
+    \item Only throughput is reported; delay, energy, fairness, and overhead are silent.
+    \item Parameters were tuned on the proposed method but not on the baseline.
+    \item Mobility, failure, or workload stress conditions were not tested.
+    \item The simulator was not validated against any analytical or published baseline.
+    \item Per-packet measurements were treated as independent; the effective $n$ is one.
+\end{enumerate}
+
+A defensible rewrite of the same claim, using the main paper's machinery,
+might read:
+
+\begin{shaded*}
+\noindent\emph{``Across 30 random seeds and 5 topologies (factorial design,
+$5\times 30 = 150$ paired runs), our protocol increases mean throughput by
+35\% (95\% bootstrap CI: 31--39\%) over the strongest published baseline at
+moderate offered load $\rho = 0.6$. The improvement holds in 4 of 5
+topologies; in the fifth (a sparse line topology) the protocols are within
+1\%. Routing overhead increases by 12\% (CI: 9--15\%); energy is within 2\%.
+Tuning was performed on a held-out validation topology; the test
+topologies above were not used during tuning. Simulator delay and
+queue-length outputs match the analytical M/M/1 model within 1.5\% in the
+no-contention limit.''}
+\end{shaded*}
+
+The rewrite is longer, but each clause closes a specific reviewer
+objection. The original sentence closed none.
+
+\section{Evaluation Plan Worksheet}
+\label{sec:worksheet}
+
+Fill out this worksheet \emph{before} running experiments. The intent is
+to catch ambiguity in the design phase, when changing the plan is cheap.
+The last item, in particular, separates a real hypothesis from a wish.
+
+\newcommand{\wsline}{\vspace{6pt}\hrule height 0.4pt\vspace{6pt}\hrule height 0.4pt\vspace{8pt}}
+
+\begin{enumerate}[leftmargin=*, itemsep=2pt]
+    \item Main claim (one sentence, plain English):\wsline
+    \item Falsifiable hypothesis:\wsline
+    \item Primary metric:\wsline
+    \item Secondary metrics (including cost/overhead):\wsline
+    \item Unit of analysis (seed / trace / topology / user / \ldots):\wsline
+    \item Baselines (and why they are the strongest reasonable ones):\wsline
+    \item Independent variables / factors:\wsline
+    \item Regimes to test (load, distribution, scale, mobility, \ldots):\wsline
+    \item Number of seeds / runs and a one-line justification:\wsline
+    \item Pairing / blocking plan (CRN? same workloads? blocked by topology?):\wsline
+    \item Statistical summary (mean / median / $p_{99}$ / AP / \ldots):\wsline
+    \item Statistical test, if any (paired Wilcoxon / Friedman / McNemar / bootstrap / none):\wsline
+    \item Figures to produce (CDF / interaction / Pareto / paired-difference / \ldots):\wsline
+    \item Ablations:\wsline
+    \item Stress tests, regimes where the method may fail:\wsline
+    \item Simulator / measurement validation steps:\wsline
+    \item Reproducibility artifacts (code, seeds, traces, hardware):\wsline
+    \item \emph{What result would make us weaken or abandon the claim?}\wsline
+\end{enumerate}
+
+The last item is the one that distinguishes a real empirical hypothesis
+from a wish, and it is the one students most often skip. If no
+experimental outcome would change the claim, the claim is not falsifiable
+and the experiment is decoration.
+
+\subsection*{A filled-out example: FIFO vs.\ SRPT}
+
+For students who have not seen what level of specificity to aim for, the
+following is the worksheet completed for the running example used in the
+main paper.
+
+\begin{enumerate}[leftmargin=*, itemsep=1pt]
+    \item Main claim: SRPT lowers mean job completion latency relative to FIFO under heavy-tailed workloads, with the gap growing in offered load.
+    \item Falsifiable hypothesis: at $\rho \geq 0.5$ under truncated-Pareto job sizes, mean per-seed latency under SRPT is lower than under FIFO.
+    \item Primary metric: per-seed mean job completion latency.
+    \item Secondary metrics: per-seed $p_{99}$ latency; per-seed throughput; preemption count (overhead).
+    \item Unit of analysis: \emph{seed}. Each seed redraws arrival times and job sizes; per-seed values are the independent observations for CIs and tests.
+    \item Baselines: FIFO (a reasonable floor) and a published shortest-job-first variant (the strongest reasonable point of comparison; not a strawman).
+    \item Independent variables: scheduling policy (FIFO, SRPT); offered load $\rho$; job-size distribution (truncated Pareto with $\alpha \in \{1.5, 2.5\}$, exponential).
+    \item Regimes: $\rho \in \{0.3, 0.5, 0.7, 0.9\}$ crossed with the three job-size distributions; full $4 \times 3$ grid.
+    \item Number of seeds: 30 per cell; chosen to give 80\% power against a Cohen's $d = 0.5$ at $\alpha = 0.05$ (paired).
+    \item Pairing / blocking plan: common random numbers --- one workload per seed, replayed under each policy; per-seed differences are the analysis unit.
+    \item Statistical summary: per-cell mean of paired differences (FIFO $-$ SRPT) with 95\% bootstrap CI on the difference; $p_{99}$ reported per cell.
+    \item Statistical test: paired Wilcoxon signed-rank on per-seed latency differences; significance reported alongside, not in place of, the CI.
+    \item Figures: latency CCDF on log--log axes; interaction plot of mean latency vs.\ $\rho$ with paired bootstrap CIs; bootstrap distribution of the per-seed difference.
+    \item Ablations: replace SRPT with shortest-job-first (no preemption) to isolate the contribution of preemption.
+    \item Stress tests: very high load ($\rho = 0.95$); exponential job sizes (where the SRPT advantage should shrink); very small job buffers.
+    \item Validation: simulator passes M/M/1 baseline reproduction in the exponential-size limit; conservation laws (jobs in $=$ jobs completed $+$ jobs in flight) hold to machine precision.
+    \item Reproducibility: \texttt{figures.py} regenerates every figure from a fixed seed range; full code, seeds, and dependency versions in the project repository.
+    \item What would weaken the claim? If the per-cell paired-difference CI overlaps zero at any $\rho \geq 0.5$ under truncated Pareto, or if the SRPT advantage at $\rho = 0.9$ is below 50\%, we would weaken the strength of the claim and report it.
+\end{enumerate}
+
+\section{Exercises}
+\label{sec:exercises}
+
+These exercises map roughly to the structure of the main paper. They are
+short and meant to be done with paper, a calculator, and (where indicated)
+a Python REPL. Solutions are not provided; they are the students' work.
+
+\paragraph{E1. Strengthen a weak claim (main \S\ref{main-sec:weak-vs-strong}).} Rewrite
+the following sentence as a strong evaluation claim, using the main
+paper's reporting order:
+\begin{quote}
+\emph{``Our cache improves throughput by 25\%.''}
+\end{quote}
+
+\paragraph{E2. Identify the unit of analysis (main \S\ref{main-sec:unit-of-analysis}).} For each scenario
+below, name the unit of analysis and the size of $n$.
+\begin{enumerate}[label=(\alph*), leftmargin=*]
+    \item One simulation run on one topology produces 10{,}000 packet
+    delays.
+    \item Twenty seeded simulation runs on one topology each produce
+    10{,}000 packet delays per run.
+    \item Ten topologies, with five seeded runs each, with 10{,}000 packet
+    delays per run.
+    \item A learned anomaly detector trained on traffic from 100 devices
+    and evaluated on traffic from 20 held-out devices, with thousands of
+    flows per device.
+\end{enumerate}
+
+\paragraph{E3. Plot choice (main \S\ref{main-sec:reporting}).} Pick the most informative plot for each:
+(a) latency comparison of two schedulers across orders of magnitude;
+(b) throughput vs.\ load for two protocols, with uncertainty;
+(c) classifier comparison on imbalanced data;
+(d) energy vs.\ latency for several configurations of a method.
+
+\paragraph{E4. Paired or unpaired? (main \S\ref{main-sec:hypothesis-testing}).}
+\begin{enumerate}[label=(\alph*), leftmargin=*]
+    \item Two schedulers run on the same 30 seeded workloads.
+    \item Two protocols run on different randomly drawn topologies.
+    \item Two ML models evaluated on the same test set.
+    \item Two algorithms evaluated on traces from disjoint pools of users.
+\end{enumerate}
+For each, state which test you would use by default and why.
+
+\paragraph{E5. Compute an effect size and a CI (main \S\ref{main-sec:ci}, Listing~\ref{main-lst:bootstrap}).} You
+are given 20 paired per-seed measurements of FIFO and SRPT mean latency.
+Write the four-line numpy snippet that produces (i) the mean per-seed
+reduction, (ii) the relative reduction in percent, and (iii) a 95\%
+percentile bootstrap CI on the mean reduction.
+
+\paragraph{E6. Find the flaw.}
+\begin{quote}
+\emph{``We ran one seed and report $p < 0.05$ over 10{,}000 packets.''}
+\end{quote}
+Identify every flaw in this sentence and propose a corrected version.
+
+\paragraph{E7. Design a factorial experiment with a budget (main \S\ref{main-sec:multifactor}).} Assume
+that one ``run'' means one policy executed on one workload, and that a
+paired seed therefore costs two runs (one per policy). You have a
+budget of 90 runs. Design a factorial experiment over (offered load $\in
+\{0.3, 0.6, 0.9\}$) $\times$ (job-size distribution $\in \{\text{exponential}, \text{truncated Pareto}\}$)
+for two policies, with paired seeds. How many complete paired seeds per
+regime can you afford, and how many runs are left over? Which
+interactions can you estimate from the resulting design?
+
+\paragraph{E8. Reproducibility checklist (main \S\ref{main-sec:reproducibility}).} For a project of your choosing
+in your group, write a short reproducibility statement that lists exactly
+the information another student would need to re-run your experiments and
+obtain the same numbers. Compare it against the main paper's
+reproducibility section and Appendix~\ref{main-sec:checklist} (the
+pre-submission checklist).
+
+\paragraph{E9. Equivalence (main \S\ref{main-sec:equivalence}).} A new lightweight model claims to
+match a heavy baseline. You measure mean test accuracy as 84.1\%
+(baseline) vs.\ 83.7\% (proposed), with 95\% CI on the difference of
+$[-1.0\%, +0.2\%]$. The team agrees on an equivalence margin of 1.5
+percentage points. Does the experiment support the equivalence claim?
+What if the margin were 0.5 percentage points instead?
+
+\paragraph{E10. The autopsy, in your own area.} Find a published claim
+in your subfield (or invent a plausible one) that has the same surface
+shape as the autopsy in \S\ref{sec:autopsy} of this workbook. List the
+problems and write a defensible rewrite.
+
+\end{document}

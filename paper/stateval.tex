@@ -61,8 +61,82 @@ University of Southern California\\
 \maketitle
 
 \begin{abstract}
-Strong experimental papers in electrical and computer engineering and computer science (ECE/CS), especially in systems, networking, and applied machine learning, rest on more than a single impressive number. They rest on a chain of design, measurement, analysis, and validation choices that, taken together, make a result believable. This tutorial is a compact, example-driven guide to that chain for beginning researchers. We cover the classical statistical foundations (descriptive statistics, the central limit theorem, normal- and $t$-based confidence intervals, Student's $t$-test, ANOVA, chi-squared and Pearson correlation, linear regression) alongside the modern, distribution-free techniques (the bootstrap, Wilcoxon and Mann--Whitney tests, Cliff's delta) that are usually preferred for ECE/CS data. We also discuss factorial design, multiple-comparison correction, latency-specific pitfalls, simulation validation, and reproducibility. A running example, a comparison of two job-scheduling algorithms on simulated workloads, threads through the tutorial, with Python snippets the reader can paste and adapt.
+Strong experimental papers in electrical and computer engineering and computer science (ECE/CS), especially in systems, networking, and applied machine learning, rest on more than a single impressive number. They rest on a chain of design, measurement, analysis, and validation choices that, taken together, make a result believable. This tutorial is a compact, example-driven guide to that chain for beginning researchers. We organize it as an evaluation \emph{workflow}: claim, hypothesis, unit of analysis, baseline, regime sweep, uncertainty estimate, validation check, and reporting. Within that workflow we cover the classical statistical foundations (descriptive statistics, the central limit theorem, normal- and $t$-based confidence intervals, Student's $t$-test, ANOVA, chi-squared and Pearson correlation, linear regression) alongside the modern, distribution-free techniques (the bootstrap, Wilcoxon and Mann--Whitney tests, Cliff's delta) that are usually preferred for ECE/CS data. We also discuss factorial design, randomization and blocking, multiple-comparison correction, latency-specific pitfalls, simulation verification and validation, equivalence-style claims, and reproducibility. A running example, a comparison of two job-scheduling algorithms on simulated workloads with truncated heavy-tailed job sizes, threads through the tutorial, with Python snippets the reader can paste and adapt. The paper closes with a pre-submission checklist; companion student-facing material (project-type translation tables, an evaluation-plan worksheet, exercises, and a worked ``bad evaluation autopsy'') is collected in a separate workbook released alongside this paper.
 \end{abstract}
+
+\section*{How to Use This Guide}
+\label{sec:how-to-use}
+\addcontentsline{toc}{section}{How to Use This Guide}
+
+The body of this paper walks an evaluation through the chain shown in Figure~\ref{fig:workflow}: from a stated claim, through the design choices that produce evidence, to the analysis and reporting that make it credible. Sections are ordered to match the chain.
+
+\begin{figure}[h]
+    \centering
+    \resizebox{\linewidth}{!}{%
+    \begin{tikzpicture}[
+        every node/.style={font=\footnotesize},
+        stage/.style={rectangle, draw, rounded corners, align=center, fill=blue!5, inner sep=4pt, minimum height=10mm, minimum width=18mm},
+        arr/.style={-stealth, thick}
+    ]
+        \node[stage] (claim)  {Claim};
+        \node[stage, right=4mm of claim] (hyp)    {Hypothesis};
+        \node[stage, right=4mm of hyp]   (unit)   {Unit of\\analysis};
+        \node[stage, right=4mm of unit]  (base)   {Baselines};
+        \node[stage, right=4mm of base]  (reg)    {Regimes};
+        \node[stage, right=4mm of reg]   (met)    {Metrics};
+        \node[stage, right=4mm of met]   (unc)    {Uncertainty};
+        \node[stage, right=4mm of unc]   (val)    {Validation};
+        \node[stage, right=4mm of val]   (rep)    {Reporting};
+        \node[stage, right=4mm of rep]   (rpr)    {Reproduce};
+        \draw[arr] (claim) -- (hyp);
+        \draw[arr] (hyp) -- (unit);
+        \draw[arr] (unit) -- (base);
+        \draw[arr] (base) -- (reg);
+        \draw[arr] (reg) -- (met);
+        \draw[arr] (met) -- (unc);
+        \draw[arr] (unc) -- (val);
+        \draw[arr] (val) -- (rep);
+        \draw[arr] (rep) -- (rpr);
+    \end{tikzpicture}}
+    \caption{The evaluation workflow this tutorial is organized around. Each stage closes a class of reviewer objection; the order matters because choices made early constrain what is provable later (the unit of analysis, in particular, has to be set before the design is locked).}
+    \label{fig:workflow}
+\end{figure}
+
+This is a 30-page document. Few students will read it in one sitting. Three reading paths cover the common cases.
+
+\paragraph{Undergraduate, first project.} Read \S\ref{sec:weak-vs-strong}--\ref{sec:variability}, \S\ref{sec:effect-size}, \S\ref{sec:latency-pitfalls}, \S\ref{sec:reproducibility}, and Appendix~\ref{sec:checklist}. The goal is to escape single-run, single-number claims.
+
+\paragraph{Master's student writing a systems or ML paper.} Read the whole main text, paying particular attention to the unit-of-analysis discussion (\S\ref{sec:unit-of-analysis}), paired designs, bootstrap CIs, multiple regimes, ablations (\S\ref{sec:ablation}), and reproducibility (\S\ref{sec:reproducibility}).
+
+\paragraph{Beginning PhD student preparing a serious submission.} Read everything, with extra time on randomization and blocking (\S\ref{sec:randomization}), tradeoffs and Pareto fronts (\S\ref{sec:tradeoffs}), simulation verification and validation (\S\ref{sec:sim-validation}), equivalence-style claims (\S\ref{sec:equivalence}), multiple comparisons (\S\ref{sec:multiple-comparisons}), and the rank-test caveats (\S\ref{sec:nonparametric}).
+
+\paragraph{Companion materials.} Three companion artifacts are released alongside this paper at \url{https://github.com/ANRGUSC/statistical-eval-tutorial}:
+
+\begin{itemize}[leftmargin=*, itemsep=1pt, topsep=2pt]
+    \item A \emph{student workbook} (\texttt{appendix/student-appendix.pdf}) with a project-type translation table, a fragile-evaluation autopsy, a fill-in evaluation-plan worksheet (with worked example), and exercises mapped to the sections of this paper.
+    \item A \emph{reproducible simulator} (\texttt{code/figures.py}) that regenerates every figure and headline number in this paper from a seeded FIFO-vs-SRPT simulation, in a few hundred lines of Python.
+    \item A \emph{Claude Code skill} (\texttt{skill/stateval-review/}) that audits a student paper draft against this tutorial's principles and writes a prioritized review document in the working directory; install with \texttt{cp -r skill/stateval-review \textasciitilde/.claude/skills/} and invoke with \texttt{/stateval-review path/to/paper.tex}.
+\end{itemize}
+
+\medskip
+
+The single most useful artifact in this document is the following short list. It is the ten-item bar a defensible empirical result has to clear before it leaves your laptop.
+
+\begin{shaded*}
+\noindent\textbf{Minimum defensible evaluation.}
+\begin{enumerate}[leftmargin=*, itemsep=1pt, topsep=2pt]
+    \item State a falsifiable hypothesis.
+    \item Choose strong baselines.
+    \item Define the unit of analysis (\S\ref{sec:unit-of-analysis}).
+    \item Run multiple independent trials/seeds.
+    \item Report effect sizes with 95\% confidence intervals.
+    \item Use paired comparisons where the design allows.
+    \item Test multiple regimes.
+    \item Show where the method does \emph{not} help.
+    \item Validate the simulator or measurement pipeline.
+    \item Release enough information to reproduce the result.
+\end{enumerate}
+\end{shaded*}
 
 \section{Introduction}
 \label{sec:intro}
@@ -78,13 +152,24 @@ A credible result, in our usage, is one that is
     \item free of artifacts introduced by the experimental setup (the simulator, the metric, or the pipeline).
 \end{itemize}
 
-This tutorial is a practical guide to producing such evaluations in ECE/CS experimental papers. We intend it for student researchers writing their first or second systems, networking, or applied-ML paper, and we have biased it toward the techniques that show up most often in real reviews. It is not a statistics primer. Where a topic has a deep theory, we point to it; we do not develop it.
+This tutorial is a practical guide to producing such evaluations in ECE/CS experimental papers. We intend it for student researchers writing their first or second systems, networking, or applied-ML paper, and we have biased it toward the techniques that show up most often in real reviews. It is not a statistics primer. Where a topic has a deep theory, we point to it; we do not develop it. Several earlier works treat overlapping ground at greater length than we can here: \citet{jain1991art} is the canonical book-length reference for systems performance evaluation, \citet{georges2007rigorous} make the case for statistical rigor in benchmark reporting, and \citet{mytkowicz2009wrong} demonstrate how easy it is to produce wrong data through small, plausible-looking measurement choices. For machine-learning evaluations specifically, \citet{demsar2006statistical} treats classifier comparison across many datasets, \citet{dietterich1998approximate} treats statistical tests for paired classifier predictions, and \citet{pineau2021reproducibility} reports on the NeurIPS reproducibility program. We borrow heavily from all of these.
 
-The remainder of the tutorial is organized as follows. Sections~\ref{sec:weak-vs-strong}--\ref{sec:hypothesis-testing} set the bar for a defensible evaluation and cover design, variability, bootstrap confidence intervals, and hypothesis testing. Sections~\ref{sec:multifactor}--\ref{sec:correlated} address multi-factor design, multiple comparisons, out-of-sample validation, latency-specific pitfalls, reporting, seeds, sample size, and correlated data. Sections~\ref{sec:sim-validation}--\ref{sec:template} describe simulation validation, machine-learning evaluations, reproducibility, a minimal toolkit, and a template for the evaluation section. Appendices~\ref{sec:checklist}--\ref{sec:glossary} provide a pre-submission checklist and a glossary.
+\paragraph{An evaluation workflow, not a stats syllabus.} The body of the tutorial is organized around the chain a credible empirical result has to walk:
+\begin{enumerate}[leftmargin=*, itemsep=1pt]
+    \item \textbf{Claim.} What is the contribution? Better, faster, more robust, same performance but cheaper, scales better, generalizes?
+    \item \textbf{Evidence.} What experiments would convince a skeptical reviewer? Strong baselines, multiple regimes, paired runs, effect sizes, ablations, stress tests.
+    \item \textbf{Unit of analysis.} What is one independent observation? Seeds, workloads, datasets, topologies, devices, users, traces.
+    \item \textbf{Statistical summary.} Difference in means, in medians, in tail percentiles, in $F_1$, in slopes; with uncertainty.
+    \item \textbf{Figure.} What plot makes the claim visible at a glance?
+    \item \textbf{Threats.} What can go wrong? Simulator artifact, leakage, cherry-picking, correlated data, bad baseline, too few seeds, metric mismatch.
+\end{enumerate}
+The sections that follow take this chain in order.
+
+The remainder of the tutorial is organized as follows. Sections~\ref{sec:weak-vs-strong}--\ref{sec:design} set the bar and cover design, baselines, randomization and blocking, and primary-vs-secondary metrics. Sections~\ref{sec:variability}--\ref{sec:hypothesis-testing} address measurement, unit of analysis, confidence intervals (with bootstrap limitations), and hypothesis testing (with caveats on rank tests). Sections~\ref{sec:effect-size}--\ref{sec:regression} cover effect size, equivalence claims, tradeoff/Pareto reporting, and regression. Sections~\ref{sec:multifactor}--\ref{sec:correlated} address multi-factor design, multiple comparisons, out-of-sample validation, ablations, latency pitfalls, reporting, seeds, sample size, outliers, and correlated data. Sections~\ref{sec:sim-validation}--\ref{sec:template} describe simulation verification and validation, machine-learning evaluations, reproducibility, a minimal toolkit, and a template for the evaluation section. Appendices~\ref{sec:checklist}--\ref{sec:glossary} provide a pre-submission checklist and a glossary. Companion student-facing material (project-type translation tables, an evaluation-plan worksheet, exercises, and a worked ``bad evaluation autopsy'') is collected in a separate workbook released alongside this paper.
 
 \subsection*{A running example}
 
-Throughout the tutorial, we use one running example: a comparison of two job-scheduling policies, \textbf{FIFO} (first-in, first-out) and \textbf{SRPT} (shortest-remaining-processing-time), on simulated workloads with Poisson arrivals and heavy-tailed (Pareto) job sizes. The metric of interest is end-to-end \textbf{job completion latency}. This example is small enough to be reproduced in tens of lines of Python, and rich enough to expose every pitfall we discuss: heavy tails (\S\ref{sec:latency-pitfalls}), correlated samples (\S\ref{sec:correlated}), interaction with load (\S\ref{sec:multifactor}), and the gap between simulator behavior and real systems (\S\ref{sec:sim-validation}).
+Throughout the tutorial, we use one running example: a comparison of two job-scheduling policies, \textbf{FIFO} (first-in, first-out) and \textbf{SRPT} (shortest-remaining-processing-time), on simulated workloads with Poisson arrivals and heavy-tailed (truncated Pareto) job sizes. We use a Pareto distribution with shape parameter $\alpha = 1.5$ truncated at a maximum job size $x_{\max}$; the truncation is realistic (real systems have finite job sizes, traces have finite length, and simulators impose limits) and avoids a subtle mathematical trap. With untruncated $\alpha = 1.5$, the variance of job size is infinite and the M/G/1 mean response time is theoretically infinite as well; the sample mean then converges very slowly and ``mean latency'' becomes an unstable headline. Truncation keeps the heavy-tail behavior students need to confront while keeping the mean well-defined. The metric of interest is end-to-end \textbf{job completion latency}. This example is small enough to be reproduced in tens of lines of Python, and rich enough to expose every pitfall we discuss: heavy tails (\S\ref{sec:latency-pitfalls}), correlated samples (\S\ref{sec:correlated}), interaction with load (\S\ref{sec:multifactor}), and the gap between simulator behavior and real systems (\S\ref{sec:sim-validation}).
 
 \section{Weak vs.\ Strong Evaluation}
 \label{sec:weak-vs-strong}
@@ -100,7 +185,7 @@ This sentence is consistent with at least three different realities: a genuine S
 
 \subsection*{Strong}
 \begin{quote}
-``Across 30 random seeds at offered load $\rho \in \{0.3, 0.5, 0.7, 0.9\}$, SRPT reduces mean job completion latency by 62--90\% relative to FIFO under Pareto job sizes ($\alpha=1.5$); paired Wilcoxon signed-rank tests yield $p < 10^{-8}$ at every load. The relative reduction grows monotonically with offered load, from 62\% at $\rho=0.3$ to 90\% at $\rho=0.9$. Absolute latency reductions are an order of magnitude larger at $\rho = 0.9$ (104 units) than at $\rho = 0.3$ (10 units), so the practical impact is concentrated in the heavy-load regime. The advantage shrinks under exponential job sizes, where SRPT and FIFO are closer in expectation.''
+``Across 30 random seeds at offered load $\rho \in \{0.3, 0.5, 0.7, 0.9\}$, SRPT reduces mean job completion latency by 63--92\% relative to FIFO under truncated-Pareto job sizes ($\alpha=1.5$); paired Wilcoxon signed-rank tests yield $p < 10^{-8}$ at every load. The relative reduction grows monotonically with offered load, from 63\% at $\rho=0.3$ to 92\% at $\rho=0.9$. Absolute latency reductions are an order of magnitude larger at $\rho = 0.9$ (71 units) than at $\rho = 0.3$ (6 units), so the practical impact is concentrated in the heavy-load regime. The advantage shrinks under exponential job sizes, where SRPT and FIFO are closer in expectation.''
 \end{quote}
 
 The strong version is not longer because it is verbose. It is longer because it commits to a number of seeds, a confidence interval method, a paired test, multiple regimes, and the boundary on which the claim depends (the job-size distribution). Each commitment is a place a reviewer might have asked a question, pre-empted.
@@ -126,12 +211,60 @@ A statistically rigorous analysis cannot rescue a poorly designed experiment. De
 Pre-commit to the regimes (loads, distributions, sizes) before looking at any results, list them in the paper, and report all of them, including the ones where the proposed method does not win. A short ``where the method does not help'' paragraph is more credible than a uniform sweep of victories.
 \end{reviewerbox}
 
+\subsection{Randomization, Blocking, and Order Effects}
+\label{sec:randomization}
+
+The seeds-and-multiple-regimes story above assumes the experiment is otherwise clean. On a real measurement testbed it usually is not. Background processes, CPU frequency scaling, thermal throttling, GPU contention, battery state, channel conditions, time of day, and the order in which trials run all introduce \emph{confounders} that can be mistaken for a treatment effect.
+
+Two design moves protect against this. \textbf{Randomization} of the order in which configurations are run breaks any systematic relationship between time-varying confounders and the configuration label: do not run all baseline trials in the morning and all proposed-method trials in the afternoon. Shuffle the trials. \textbf{Blocking} groups trials that share a confounder and varies the treatment within each block. Concretely, if you compare two wireless protocols on ten topologies, do not run protocol A on one set of topologies and protocol B on another. Run both protocols on each topology and each seed, in a randomized within-block order, and analyze the paired differences. The same logic applies to blocking by machine, dataset split, day, channel realization, or workload trace. Blocked-and-paired designs are a major source of statistical power and are what makes the paired tests of \S\ref{sec:hypothesis-testing} appropriate. As a quick checklist for systems-style experiments: pin CPU governor and frequency, disable turbo if measuring stability, fix kernel and library versions, isolate the system under test from background load, and record the environment (temperature, battery, network) alongside the result.
+
+\subsection{Primary and Secondary Metrics}
+\label{sec:primary-metric}
+
+Real systems are evaluated on more than one metric: latency and throughput, accuracy and energy, makespan and communication overhead, packet delivery ratio and routing overhead, model quality and training time. A common student failure mode is to report many metrics, then selectively emphasize whichever looks best. Reviewers can detect this and discount the result accordingly.
+
+The discipline is to pick one \textbf{primary metric} tied to the main claim, before running the experiment, and stick with it. Pick a small set of \textbf{secondary metrics} that document the tradeoffs around the primary metric, and report them whether or not they flatter the proposed method. Do not change the primary metric after seeing results, and do not silently drop secondary metrics that came out unfavorably; that is exactly the data-dependent choice the garden of forking paths warns about (\S\ref{sec:multiple-comparisons}). For systems work, it is good practice to include cost or overhead among the secondaries: runtime, memory, communication or message overhead, energy, and implementation complexity. A method that improves the primary metric by 3\% while increasing overhead by an order of magnitude has not unambiguously won, and the evaluation should not hide that.
+
 \section{Measurement and Variability}
 \label{sec:variability}
 
 Most ECE/CS experiments are stochastic: random seeds, network jitter, GPU non-determinism, cache state. A single run reports a single sample from a distribution. Treat that distribution as the object of study, rather than the single number.
 
 \paragraph{How many runs.} A practical floor is $n \geq 10$ seeds; $n \geq 30$ is comfortable; for tail metrics ($p_{95}$, $p_{99}$) you generally want substantially more, because each run gives only one estimate of the tail. We treat sample-size selection more carefully in \S\ref{sec:sample-size}.
+
+\subsection{What Is One Data Point? The Unit of Analysis}
+\label{sec:unit-of-analysis}
+
+Before any test or interval can be computed, you have to know what counts as one independent observation. Beginning researchers frequently get this wrong, and the resulting confidence intervals can be off by more than an order of magnitude. The pattern looks like this:
+
+\begin{quote}
+``We simulated 1{,}000{,}000 packets, so $n = 10^6$. The standard error is tiny.''
+\end{quote}
+
+If those packets came from \emph{one} run, with one topology, one mobility trace, one seed, and one channel realization, then there is no sense in which you have a million independent experimental replications. You have one experimental unit, observed a million times. The packet-level samples are correlated within the run, and aggregating them with formulas that assume independence can shrink CIs absurdly. This problem is called \emph{pseudoreplication}: counting non-independent observations as if they were independent.
+
+The fix is to identify the level at which experimental conditions are independently re-rolled, and treat that level as the unit of analysis. For most ECE/CS work the candidates are:
+
+\begin{itemize}
+    \item \textbf{Seed.} A new seed redraws the workload, the noise, and (in CRN-style designs) the policy-internal randomness. Seeds are the typical unit for simulation studies.
+    \item \textbf{Workload or trace.} If the experiment runs on a held-out collection of real traces (CAIDA flows, MAWI captures, MIMIC-III patients, ImageNet images), each trace is one unit.
+    \item \textbf{Topology, machine, or device.} For a wireless evaluation that varies topology or for a benchmark run on multiple machines, each topology/machine is one unit; observations within it are correlated.
+    \item \textbf{User or subject.} For systems involving real people (input traces, search queries, evaluation subjects), the user is the unit, even when each user contributes many events.
+\end{itemize}
+
+The safe default for a student project is therefore: \emph{summarize each independent run by one number} (e.g., per-seed mean latency, per-seed $p_{99}$, per-seed delivery ratio), \emph{then compute statistics across those run-level summaries}. This collapses millions of correlated raw observations into the much smaller number of genuinely independent experimental replicates, which is the number that should drive standard errors and CIs.
+
+\begin{shaded*}
+\noindent\textbf{Wrong vs. right.}
+\begin{itemize}[leftmargin=*, itemsep=1pt]
+    \item \emph{Wrong:} ``We observed 1{,}000{,}000 packet delays and used a $t$-test with $n = 10^6$.''
+    \item \emph{Better:} ``We ran 30 independent seeds. For each seed we computed mean delay, $p_{99}$ delay, and delivery ratio. We report 95\% bootstrap CIs across the 30 seed-level summaries.''
+\end{itemize}
+\end{shaded*}
+
+When the design is genuinely nested (packets within runs within topologies within scenarios), the analysis must respect that nesting: either pre-aggregate to the highest independent level (the simplest fix), use a clustered or block bootstrap that resamples whole runs/topologies (\S\ref{sec:correlated}), or fit a hierarchical/mixed-effects model that has variance components for each level. For a student paper, pre-aggregation is almost always the right starting move.
+
+This concept reappears throughout the tutorial: it determines what the bootstrap should resample (\S\ref{sec:bootstrap}), what counts as a paired observation (\S\ref{sec:hypothesis-testing}), how ML splits should be drawn (\S\ref{sec:ml}), and what time-correlated data does to standard tests (\S\ref{sec:correlated}).
 
 \subsection{Basic descriptive statistics}
 \label{sec:descriptive}
@@ -188,9 +321,19 @@ def bootstrap_ci(x, stat=np.mean, n_boot=10000, alpha=0.05, rng=None):
     return stat(x), lo, hi
 \end{lstlisting}
 
-The bootstrap is not magic. With very small $n$ (say, $n < 8$) the resamples cannot capture the true variability and CIs become optimistic; in that regime the $t$-based CI of Equation~(\ref{eq:tci}) is preferable when its assumptions are tenable, and otherwise no method will save the analysis. For paired comparisons, bootstrap the \emph{differences} per pair, rather than the two arms separately. For correlated time-series data, use the block bootstrap (\S\ref{sec:correlated}). The bias-corrected and accelerated (BCa) variant adjusts for skew in the bootstrap distribution and is recommended as a refinement when the simple percentile interval looks asymmetric.
+The bootstrap is not magic, and it is not assumption-free. It assumes the observed sample is representative of the population of experimental units and that the resampling scheme matches the dependence structure of the data. Several caveats follow from those assumptions and matter in practice:
 
-\paragraph{Which to use.} For ECE/CS experimental data, we recommend the bootstrap as the default because it makes the fewest assumptions and gives correct intervals across the metrics that systems researchers report most often (mean latency, tail percentiles, ratios). The normal and $t$-based intervals remain useful as sanity checks, as the right tool when the data clearly is normal (e.g., averages over thousands of independent measurements), and as the formulas one is expected to recognize in any review.
+\begin{itemize}[leftmargin=*, itemsep=1pt]
+    \item \textbf{Resample units, not raw events.} Do not bootstrap individual packets, requests, or events when those events are correlated within a run. Resample the unit of analysis (\S\ref{sec:unit-of-analysis})\,---\,seeds, runs, traces, topologies\,---\,not the raw observations inside it. Bootstrapping packets pretends each packet is independent and produces CIs that are too narrow.
+    \item \textbf{Pair the bootstrap.} For paired comparisons, bootstrap the per-pair differences $d_i$, not the two arms separately.
+    \item \textbf{Time series.} For time-correlated data, use the block bootstrap (\S\ref{sec:correlated}); the block length should exceed the dominant autocorrelation scale.
+    \item \textbf{Nested data.} For genuinely nested designs (packets in runs in topologies), use a clustered bootstrap that resamples whole top-level units, not individual leaves.
+    \item \textbf{Small $n$.} With very small $n$ (say, $n < 8$) the resamples cannot capture the true variability and percentile CIs become optimistic; the $t$-based CI of Equation~(\ref{eq:tci}) is preferable when its assumptions are tenable, and otherwise no method will save the analysis.
+    \item \textbf{Extreme tails.} Percentile bootstrap CIs can be inaccurate for very small $n$ or for extreme tail quantities (e.g., $p_{99}$ from a single short run, where the number of \emph{raw} observations per run also matters).
+    \item \textbf{Skew.} The bias-corrected and accelerated (BCa) variant adjusts for skew in the bootstrap distribution and is recommended as a refinement when the simple percentile interval looks asymmetric.
+\end{itemize}
+
+\paragraph{Which to use.} For ECE/CS experimental data, we recommend the bootstrap as the default because it makes the fewest assumptions and often gives practical, assumption-light intervals for the metrics systems researchers report most often (mean latency, tail percentiles, ratios), provided the resampling unit matches the experimental design (\S\ref{sec:unit-of-analysis}). The normal and $t$-based intervals remain useful as sanity checks, as the right tool when the data clearly is normal (e.g., averages over thousands of independent measurements), and as the formulas one is expected to recognize in any review. In recent versions of SciPy, \texttt{scipy.stats.bootstrap} provides a well-tested implementation including BCa intervals; we show the percentile loop in Listing~\ref{lst:bootstrap} for transparency, but library code is preferable in production.
 
 \begin{figure}[t]
     \centering
@@ -329,10 +472,41 @@ rel = (diff / fifo).mean() * 100             # mean relative reduction
 print(f"reduction = {rel:.1f}%, p = {pval:.2e}")
 \end{lstlisting}
 
+\paragraph{A more complete decision aid.} The flowchart above selects between two-/multi-group rank tests under uncertainty about distributional shape. Real comparisons need a few more decisions on top of it.
+
+\begin{enumerate}[leftmargin=*, itemsep=1pt]
+    \item \emph{Is the same workload/seed/topology used for both methods?} Yes $\to$ paired comparison; no $\to$ independent comparison.
+    \item \emph{Two groups or more than two?} Two $\to$ Wilcoxon/paired-$t$ or Mann--Whitney/Welch; more $\to$ Friedman/repeated-measures ANOVA or Kruskal--Wallis/ANOVA.
+    \item \emph{Is the claim about the mean, median, a tail percentile, the full distribution, or a probability of an event?} The statistic and CI depend on which one.
+    \item \emph{Are observations correlated over time or nested?} Aggregate to run-level summaries, use a block or clustered bootstrap, or fit a mixed-effects model.
+    \item \emph{Are you making many comparisons?} Pre-declare the primary comparison, and apply a correction (\S\ref{sec:multiple-comparisons}) to the rest.
+\end{enumerate}
+
+\paragraph{Caveats on rank tests.} The convenience of rank tests has a price, and a student who internalizes ``always Wilcoxon'' will eventually overlearn the rule. A few caveats are worth keeping in mind:
+
+\begin{itemize}[leftmargin=*, itemsep=1pt]
+    \item Wilcoxon signed-rank assumes the distribution of paired differences is roughly \emph{symmetric}. If symmetry is doubtful and the claim is about the direction of the median, the simpler \textbf{sign test} is safer (less powerful, but only assumes the median).
+    \item Mann--Whitney U is not strictly a ``test of medians'' unless the two distributions have similar shape. More generally, it tests whether values from one distribution tend to be larger than values from the other.
+    \item Kolmogorov--Smirnov compares full distributions but is less sensitive in the tails and behaves awkwardly with discrete data or many ties.
+    \item For paired ML predictions on the same test set, McNemar's test or a paired bootstrap/permutation test on per-example scores is usually more appropriate than treating the two methods' scores as independent \citep{dietterich1998approximate}.
+\end{itemize}
+
 \section{Effect Size and Practical Significance}
 \label{sec:effect-size}
 
 A small $p$-value tells you the difference is unlikely under the null hypothesis. It does not tell you the difference is large. With enough seeds, any non-zero difference becomes ``significant.'' The corresponding error in reporting is to lead with $p$ and bury the magnitude. Always lead with the effect size, and use the $p$-value to support it.
+
+\paragraph{Estimation first, testing second.} The primary object of reporting is the estimated effect and its uncertainty; the $p$-value is secondary. Instead of asking ``is SRPT significantly better than FIFO?''~the better question is ``how much better is SRPT than FIFO, under which regimes, with what uncertainty, and is the effect practically meaningful?'' Concretely, we recommend the following reporting order for any headline comparison:
+
+\begin{enumerate}[leftmargin=*, itemsep=1pt]
+    \item \textbf{Absolute effect}, in natural units: ``mean latency reduced by 70\,ms.''
+    \item \textbf{Relative effect}, where it aids interpretation: ``a 62\% reduction.''
+    \item \textbf{Confidence interval} on the difference: ``95\% bootstrap CI: 45--95\,ms.''
+    \item \textbf{Regime}, where the claim holds: ``at $\rho=0.8$ under truncated-Pareto job sizes.''
+    \item \textbf{Test result}, last and shortest: ``paired Wilcoxon $p < 10^{-6}$.''
+\end{enumerate}
+
+A reader who can only skim the first three items has the substance of the result; the regime and test add support. A reader who can only see the $p$-value has nothing they can act on.
 
 \paragraph{Cohen's $d$.} The standardized mean difference, useful when comparing across studies with different units:
 \begin{equation}
@@ -351,6 +525,31 @@ The ASA's 2016 statement on $p$-values \citep{wasserstein2016asa} is the canonic
 \begin{reviewerbox}{``You report $p < 0.001$ but the improvement is 0.3\%.''}
 This is the effect-size objection. The fix is to lead with the effect size and its CI, and report the $p$-value in support, rather than the other way around.
 \end{reviewerbox}
+
+\section{Tradeoffs and Pareto Fronts}
+\label{sec:tradeoffs}
+
+Many ECE/CS papers do not claim a single-metric win. The honest story is a tradeoff: latency vs.\ energy, accuracy vs.\ inference cost, throughput vs.\ fairness, makespan vs.\ communication overhead, packet delivery vs.\ routing overhead, model quality vs.\ training time, robustness vs.\ resource usage. When this is the case, do not pretend one metric dominates. Plot the tradeoff.
+
+A scatter plot with the primary metric on one axis and the cost/overhead metric on the other, with each method's points connected by its parameter sweep (e.g., model size, batch size, scheduling threshold), is usually the most informative view. The relevant comparison is then between the \emph{Pareto fronts} of the methods. A method is \textbf{Pareto-dominated} if some other method is at least as good on every metric and strictly better on at least one; the points on the lower-left frontier of a latency--energy plot, for example, are the ones a designer would actually pick from. Reporting Pareto fronts (rather than a single operating point per method) does two things: it forecloses the objection that the comparison cherry-picked a flattering operating point, and it gives the reader a vocabulary to evaluate the result against their own constraints.
+
+\section{Equivalence and Non-Inferiority Claims}
+\label{sec:equivalence}
+
+A surprisingly large number of ECE/CS papers do not actually claim a performance \emph{improvement}. They claim something else:
+
+\begin{itemize}[leftmargin=*, itemsep=1pt]
+    \item same accuracy with less energy or compute,
+    \item same throughput with fewer messages or lower memory,
+    \item same reliability with simpler implementation,
+    \item similar performance under more realistic adversarial or failure conditions.
+\end{itemize}
+
+Standard significance tests are poorly suited to ``same as baseline'' claims, because the framework is designed to reject a null hypothesis of equality, not to support it. A non-significant $p$-value is \emph{not} evidence that two methods are equivalent; it is consistent with both equivalence and insufficient power.
+
+The right framing is an \textbf{equivalence} or \textbf{non-inferiority} claim with a pre-declared margin. The recipe is short: before running, declare a margin $\Delta$ that captures the largest performance gap you would be willing to call ``the same'' (for example, ``within 2\% of baseline accuracy''). Compute the 95\% CI on the difference, and check whether the entire CI lies inside $[-\Delta, +\Delta]$ (equivalence) or above $-\Delta$ (non-inferiority). If it does, you have evidence for the equivalence/non-inferiority claim at the chosen margin; the CI tells the reader the precision. The margin must be set before seeing the data, and tying it to a substantive criterion (an SLA, an energy budget, a known noise floor) is more defensible than a round number.
+
+Worked example: ``Our lightweight scheduler matches the heavy baseline within $\Delta = 2\%$ mean latency while using 40\% less compute. The 95\% CI on the latency difference is $[-1.1\%, +1.4\%]$, which lies inside the equivalence band; the compute saving has 95\% CI $[36\%, 44\%]$.''
 
 \section{Linear Regression and Correlation}
 \label{sec:regression}
@@ -374,7 +573,7 @@ Real systems have more than one knob. Performance depends on offered load, job-s
 
 The danger of OFAT is that it cannot detect \emph{interactions}. If SRPT helps at high load only when sizes are also heavy-tailed, an OFAT sweep over load at light-tailed defaults will miss the effect entirely; an OFAT sweep over size distribution at low-load defaults will too. A method whose advantage requires two factors to align cannot be discovered by one-at-a-time experimentation. For this reason, we treat OFAT as a screening step rather than the headline evaluation.
 
-\paragraph{Factorial designs.} A full factorial design with $k$ factors at $L$ levels each requires $L^k$ configurations. For two factors at three levels (e.g., load $\in \{0.3, 0.7, 0.9\}$ and job-size variability $\in \{\text{light}, \text{medium}, \text{heavy}\}$), nine cells is manageable and informative. Plot the resulting $3 \times 3$ grid as an interaction plot; non-parallel lines indicate that the effect of the policy depends on the regime, which is usually the most interesting finding. When the full grid is too expensive, fractional factorial designs (such as Latin squares) sample a structured subset that still permits estimation of main effects and selected interactions.
+\paragraph{Factorial designs.} A full factorial design with $k$ factors at $L$ levels each requires $L^k$ configurations. For two factors at three levels (e.g., load $\in \{0.3, 0.7, 0.9\}$ and job-size variability $\in \{\text{light}, \text{medium}, \text{heavy}\}$), nine cells is manageable and informative. Plot the resulting $3 \times 3$ grid as an interaction plot; non-parallel lines indicate that the effect of the policy depends on the regime, which is usually the most interesting finding. When the full grid is too expensive, fractional factorial designs sample a structured subset that still permits estimation of main effects and selected interactions; Latin-square-style designs are a related family, useful when two nuisance factors need to be blocked and counterbalanced rather than as a generic fractional factorial method.
 
 \paragraph{Do not average across regimes you care about.} Reporting a single ``mean over all loads'' figure can hide the most important fact about your system, which is \emph{where} it helps. Either present the regimes separately, or use a model (two-way ANOVA, or regression with interaction terms) that estimates the interaction explicitly.
 
@@ -424,11 +623,11 @@ Latency data is the most common metric in systems papers and the most consistent
 \begin{figure}[t]
     \centering
     \includegraphics[width=0.7\linewidth]{figs/latency_cdf.pdf}
-    \caption{Complementary CDF of job completion latency at $\rho=0.8$, Pareto-1.5 sizes, log--log axes. Plotting the full distribution exposes tail behavior that the mean and median both hide.}
+    \caption{Complementary CDF of job completion latency at $\rho=0.8$, truncated-Pareto-1.5 sizes, log--log axes, $n = 30$ seeds. Plotting the full distribution exposes tail behavior that the mean and median both hide.}
     \label{fig:cdf}
 \end{figure}
 
-\paragraph{Coordinated omission.} Many load generators measure the time from request \emph{dispatch} to response, but pause dispatch when the system stalls. The result is a latency distribution that looks artificially good under overload, because the worst-case requests were never sent. The fix, due to Tene, is to measure latency relative to the request's \emph{intended} dispatch time, not the actual one. Any closed-loop benchmark that does not correct for coordinated omission should be regarded with suspicion.
+\paragraph{Coordinated omission.} Many load generators measure the time from request \emph{dispatch} to response, but pause dispatch when the system stalls. The result is a latency distribution that looks artificially good under overload, because the worst-case requests were never sent. The fix, due to \citet{tene2015latency}, is to measure latency relative to the request's \emph{intended} dispatch time, not the actual one. Any closed-loop benchmark that does not correct for coordinated omission should be regarded with suspicion.
 
 \paragraph{Warmup and JIT effects.} Cold caches, JIT compilation, lazy connection setup, and resource ramp-up all distort early measurements. Discard or separately analyze a warmup window. Document the warmup duration and how it was chosen.
 
@@ -437,7 +636,9 @@ Latency data is the most common metric in systems papers and the most consistent
 
 Good figures are evaluations in compressed form; bad figures hide them.
 
-\paragraph{Default to 95\% CIs, not standard errors or standard deviations.} Standard error bars look small and tempt the reader into reading them as significance bars; they are not. Confidence intervals support the visual claim that ``these conditions differ'' directly. Figure~\ref{fig:errorbars} shows the same data plotted with both kinds of bars; the SE version invites the eye to call the means ``the same,'' which is not what the data say.
+\paragraph{Default to 95\% CIs, not standard errors or standard deviations.} Beginners frequently confuse four related quantities: the \textbf{standard deviation} (SD) describes the variability of observations or runs; the \textbf{standard error} (SE) of the mean describes how precisely the sample mean estimates the true mean and equals $s/\sqrt{n}$; the \textbf{confidence interval} is the uncertainty interval for a parameter and is roughly $\bar{x}\pm 2\,\mathrm{SE}$ for a mean under approximate normality; and the \textbf{CI of the difference} is what you usually actually want. Standard error bars look small and tempt the reader into reading them as significance bars; they are not. Confidence intervals support the visual claim that ``these conditions differ'' directly. Figure~\ref{fig:errorbars} shows the same data plotted with both kinds of bars; the SE version invites the eye to call the means ``the same,'' which is not what the data say.
+
+\paragraph{When the claim is comparative, plot the CI of the difference.} If the scientific claim is ``A improves over B,'' the cleanest interval is the CI on the paired difference $\bar{x}_A - \bar{x}_B$, not separate error bars on $\bar{x}_A$ and $\bar{x}_B$. Two facts make this important. First, non-overlap of separate 95\% CIs is not exactly equivalent to a significant difference at the 5\% level: two intervals can overlap visibly while the difference is significant, and (less commonly) two intervals can fail to overlap while a paired test does not declare the difference significant. Second, when the experiment is paired (same seeds, same workloads), the CI of the paired difference is much narrower than what one would compute from the two separate CIs, because the per-pair correlation cancels out exogenous noise. Reporting only separate bars throws this advantage away. The bootstrap recipe is the same as Listing~\ref{lst:bootstrap}, applied to the per-seed differences $d_i = x_{A,i} - x_{B,i}$.
 
 \begin{figure}[t]
     \centering
@@ -481,6 +682,20 @@ to estimate the seeds needed for power $1-\beta$ at significance $\alpha$. For $
 
 For tail metrics ($p_{99}$), the relevant quantity is the number of \emph{tail samples} per run, not the number of runs. A run with too few requests gives an unstable $p_{99}$ no matter how many times it is repeated.
 
+\section{Outliers, Failed Runs, and Exclusion Rules}
+\label{sec:outliers}
+
+Real experiments produce ``weird'' runs: a run that crashed, a run with an order-of-magnitude latency spike, a seed where the GPU thermally throttled, a trace where the radio briefly disconnected. Beginning researchers often quietly drop these from the analysis. Reviewers, correctly, treat silent exclusion as a credibility threat. A few rules avoid the problem:
+
+\begin{itemize}[leftmargin=*, itemsep=1pt]
+    \item \textbf{Define exclusion criteria before running.} A run is excluded if X occurs (the simulator times out, the device crashes, the network disconnects). Write the rule down before you see the results.
+    \item \textbf{Do not exclude on the outcome variable.} Excluding a run because the headline metric came out unfavorable is data-dependent selection and violates the analysis assumptions.
+    \item \textbf{Report counts.} ``We ran 30 seeds; 2 were excluded due to simulator non-convergence; reported $n = 28$.'' The reader can decide whether the exclusion is suspicious.
+    \item \textbf{Show with and without.} If the exclusions move the headline number materially, present both versions. Robust conclusions survive the comparison.
+    \item \textbf{Crashes are often results.} A method whose 5\% crash rate is hidden by silent exclusion is much worse than the headline says. The crash rate itself is a metric.
+    \item \textbf{Tail values may be the point.} For latency, rare large values are not noise; they are the phenomenon of interest. Trimming the tail to ``stabilize the mean'' redefines the metric.
+\end{itemize}
+
 \begin{figure}[t]
     \centering
     \includegraphics[width=0.7\linewidth]{figs/power.pdf}
@@ -495,35 +710,52 @@ Standard tests and bootstrap CIs assume independent samples. For time-series dat
 
 Two fixes cover most of what student researchers need. The first is \textbf{aggregation}: summarize each run by a single statistic per experiment (mean latency, $p_{99}$, throughput) and treat those summaries as the unit of analysis. This works well when ``one run'' is naturally one independent draw. The second is the \textbf{block bootstrap}: rather than resampling individual time-points, resample contiguous blocks long enough to preserve the autocorrelation. The block length should be chosen larger than the dominant autocorrelation timescale; doubling the block length and checking that the CI is stable is a reasonable diagnostic.
 
-\section{Simulation Validation}
+\section{Simulation Verification and Validation}
 \label{sec:sim-validation}
 
-Most systems and networking papers rely on simulators. Simulators are convenient and almost always wrong in some way that matters; the question is whether the way they are wrong undermines the claim. Four checks catch most problems before reviewers do.
+Most systems and networking papers rely on simulators. Simulators are convenient and almost always wrong in some way that matters; the question is whether the way they are wrong undermines the claim. The standard discipline distinguishes two related but distinct questions, both of which need answers before any headline result is trusted.
 
-\paragraph{Sanity checks.} The simulator should produce trivial answers to trivial questions. Zero offered load should produce zero queueing delay. Infinite link capacity should produce zero drops. Idle workers should not produce non-zero CPU time. These are cheap to write, embarrassing to fail, and frequently fail.
+\paragraph{Verification: did we implement the model correctly?} This is an internal-consistency question. Even a perfect model is useless if the code does not implement it. Verification checks include: deterministic toy cases with closed-form answers, limiting cases (zero load, infinite capacity), unit tests for the core data structures, and conservation laws (packets sent = received + dropped, total work done = total work submitted) that must hold to machine precision. These are cheap to write, embarrassing to fail, and frequently fail.
 
-\paragraph{Baseline reproduction.} Run the simulator against a published or analytically known result, such as M/M/1 mean queue length under Poisson arrivals or TCP throughput under a known loss rate, and verify it matches within reasonable tolerance. If it does not, the simulator has a bug, or you are misunderstanding the model.
+\paragraph{Validation: is the model appropriate for the real system or claim?} This is an external-correspondence question. A correctly implemented model can still be the wrong model: idealized channel models, missing failure modes, unrealistic workloads, or absent hardware effects can each break a claim that depends on them. Validation checks include comparison to analytical results (M/M/1 queue lengths, TCP throughput under known loss), reproduction of published baselines, comparison to measurements on real hardware, agreement with expected scaling laws, and a written \emph{scope statement} that lists what the simulator does \emph{not} model. The scope statement is a load-bearing piece of documentation: it tells the reader (and reviewers) which claims the simulator can support and which it cannot.
 
-\paragraph{Sensitivity analysis.} Vary each parameter and confirm the response is qualitatively right. Doubling the arrival rate should increase queue length; halving the bandwidth should reduce throughput; turning off the proposed mechanism should give back the baseline. Surprising sensitivities are usually bugs.
+A few specific checks cover most of what students need.
 
-\paragraph{Internal consistency.} Conservation laws (packets sent equal packets received plus packets dropped, total work done equals total work submitted) should hold to machine precision. If they do not, the simulator is dropping work somewhere it should not be.
+\paragraph{Sanity checks (verification).} The simulator should produce trivial answers to trivial questions. Zero offered load should produce zero queueing delay. Infinite link capacity should produce zero drops. Idle workers should not produce non-zero CPU time.
 
-\paragraph{Variance reduction.} Common random numbers (CRN) is an under-used technique in systems papers: when comparing two policies, drive both with the same arrival sequence and the same job-size sequence, varying only the policy. The per-seed difference then has far lower variance than the difference of independent runs. CRN is nearly free in implementation cost, and it directly enables the paired tests of \S\ref{sec:hypothesis-testing}.
+\paragraph{Baseline reproduction (validation).} Run the simulator against a published or analytically known result, such as M/M/1 mean queue length under Poisson arrivals or TCP throughput under a known loss rate, and verify it matches within reasonable tolerance. If it does not, the simulator has a bug, or you are misunderstanding the model.
 
-\begin{lstlisting}[caption={Common random numbers: same seed drives both policies, so per-seed differences have lower variance.},label={lst:crn}]
+\paragraph{Input validation.} Are the input distributions, mobility models, channel models, and workload traces realistic for the regime you claim to evaluate? A heavy-tailed claim under exponentially distributed inputs is not what it looks like.
+
+\paragraph{Sensitivity analysis.} Vary each parameter and confirm the response is qualitatively right. Doubling the arrival rate should increase queue length; halving the bandwidth should reduce throughput; turning off the proposed mechanism should give back the baseline. Surprising sensitivities are usually bugs. A stronger version of the same test asks whether the \emph{conclusion} (not just the response surface) survives plausible parameter changes; if a 20\% perturbation of an input distribution flips the result, the headline is fragile.
+
+\paragraph{Internal consistency.} Conservation laws should hold to machine precision. If they do not, the simulator is dropping work somewhere it should not be.
+
+\paragraph{Variance reduction.} Common random numbers (CRN) is an under-used technique in systems papers: when comparing two policies, drive both with the same arrival sequence and the same job-size sequence, varying only the policy. The per-seed difference then has far lower variance than the difference of independent runs. CRN is nearly free in implementation cost, and it directly enables the paired tests of \S\ref{sec:hypothesis-testing}. Implemented carelessly, CRN can desynchronize the workload between policies; Listing~\ref{lst:crn} shows the safe pattern.
+
+\begin{lstlisting}[caption={Common random numbers: generate the workload \emph{once} per seed and replay it under each policy. Seeding two policies with the same RNG is not enough, because the policies may consume random numbers in different orders.},label={lst:crn}]
 import numpy as np
 
+def make_workload(seed, rho, n_jobs=5000, alpha=1.5, x_max=1e4):
+    # Exogenous randomness: arrivals and (truncated-Pareto) sizes.
+    rng = np.random.default_rng(seed)
+    arrivals = generate_arrivals(rng, rho, n_jobs)
+    sizes    = generate_job_sizes(rng, n_jobs, alpha=alpha, x_max=x_max)
+    return arrivals, sizes
+
 def run_pair(seed, rho, n_jobs=5000):
-    # Two independent generators seeded identically: arrivals and sizes match.
-    rng_fifo = np.random.default_rng(seed)
-    rng_srpt = np.random.default_rng(seed)
-    fifo = simulate("FIFO", rho, n_jobs, 1.5, rng_fifo).completion_times.mean()
-    srpt = simulate("SRPT", rho, n_jobs, 1.5, rng_srpt).completion_times.mean()
-    return fifo, srpt
+    workload = make_workload(seed, rho, n_jobs)
+    # Policy-internal randomness (e.g., tie-breaks) gets its own stream
+    # so that one policy's coin flips do not perturb the other's workload.
+    fifo = simulate("FIFO", workload, policy_seed=seed + 10_000)
+    srpt = simulate("SRPT", workload, policy_seed=seed + 20_000)
+    return fifo.completion_times.mean(), srpt.completion_times.mean()
 
 pairs = [run_pair(s, 0.8) for s in range(30)]   # paired by seed
 fifo, srpt = map(np.array, zip(*pairs))
 \end{lstlisting}
+
+The lesson is that CRN means the \emph{exogenous} randomness (arrivals, job sizes, channel trace, mobility trace, topology) is shared across policies, while each policy's \emph{internal} randomness (tie-breaks, randomized exploration) gets its own independent stream. A single shared RNG handed to both policies will desynchronize the workload as soon as the policies consume random numbers at different rates.
 
 \section{A Note on Machine-Learning Evaluations}
 \label{sec:ml}
@@ -532,15 +764,17 @@ Systems work increasingly trains or deploys models, and the same playbook applie
 
 \paragraph{Data leakage.} Train, validation, and test data must be separated cleanly. Data leakage, when information from the test set influences the model (through pre-processing computed on the full data, label leakage from features that are themselves derived from the label, temporal leakage when future data informs predictions about past data, or grouped data split across folds), is the single most common cause of inflated reported numbers. Always split before any preprocessing, and verify the split with at least one sanity check (e.g., train on one half of dates, test on the other half).
 
+\paragraph{Splits respect the unit of analysis.} The split also has to respect the structure of the data, not just its size. The unit-of-analysis lesson of \S\ref{sec:unit-of-analysis} reappears here. If rows are correlated by user, device, patient, scenario, or time window, a random row-level split puts correlated examples on both sides of the train/test boundary and inflates test-set performance. The fix is a \emph{grouped split} (split by user/device/scenario, not by row) for clustered data, and a \emph{temporal split} (train on past, test on future) for forecasting and time-series anomaly detection. For hyperparameter tuning, use \emph{nested cross-validation}: an outer split for honest test estimates and an inner split for tuning. Threshold-dependent metrics ($F_1$, accuracy, $p_{99}$ recall at fixed false-positive rate) require the threshold to be picked on validation data, not test data. Confidence intervals on ML metrics are then computed by paired bootstrap over test \emph{examples} (or test \emph{groups}, when the data is clustered), comparing classifiers on the same examples; this is the ML analogue of the paired tests of \S\ref{sec:hypothesis-testing}.
+
 \paragraph{Choose metrics that match the task.} The evaluation metric should match the task and the cost structure of errors. The right metric is more important than the right test, and beginning researchers consistently underweight this point. The defaults by task family are as follows.
 
-\textit{Classification.} For balanced binary classification, report accuracy, precision, recall, and the $F_1$ score (the harmonic mean of precision and recall). For imbalanced data, accuracy alone is misleading and should be replaced or supplemented with the precision-recall (P--R) curve and the average precision (AP), which is the area under the P--R curve. The receiver operating characteristic (ROC) curve and the area under it (AUROC) summarize the trade-off between true positive rate and false positive rate; AUROC is widely reported but can flatter classifiers on highly imbalanced data, where the P--R view is more honest. For multi-class problems, report per-class metrics in addition to macro- and micro-averaged $F_1$. For tasks with calibrated probability outputs, also report a calibration curve and a calibration metric (Brier score, expected calibration error).
+\textit{Classification.} For balanced binary classification, report accuracy, precision, recall, and the $F_1$ score (the harmonic mean of precision and recall). For imbalanced data, accuracy alone is misleading and should be replaced or supplemented with the precision-recall (P--R) curve and the average precision (AP), which is the area under the P--R curve. The receiver operating characteristic (ROC) curve and the area under it (AUROC) summarize the trade-off between true positive rate and false positive rate; AUROC is widely reported but can flatter classifiers on highly imbalanced data, where the P--R view is more honest. For multi-class problems, report per-class metrics in addition to macro- and micro-averaged $F_1$. When comparing classifiers across many datasets, \citet{demsar2006statistical} recommends Friedman tests with post-hoc Nemenyi or Bonferroni--Dunn comparisons, rather than per-dataset $t$-tests. For tasks with calibrated probability outputs, also report a calibration curve and a calibration metric (Brier score, expected calibration error).
 
 \textit{Regression and continuous prediction.} Report mean squared error (MSE) or root MSE (RMSE) when large errors are disproportionately costly, mean absolute error (MAE) when they are not, and the mean absolute percentage error (MAPE) when scale-free comparison across targets is needed. The coefficient of determination $R^2$ is useful as a unitless summary; pair it with a residual plot, as in \S\ref{sec:regression}. For probabilistic forecasts, report a proper scoring rule such as the log score or the continuous ranked probability score (CRPS).
 
 \textit{Ranking and information retrieval.} Report normalized discounted cumulative gain (NDCG) at $k$, mean average precision (MAP), and mean reciprocal rank (MRR), choosing among them based on whether graded relevance, binary relevance, or position of the first relevant item is the quantity of interest.
 
-\textit{Language models.} Report perplexity (the exponential of the per-token cross-entropy) on a held-out corpus for autoregressive language modeling. For machine translation, summarization, and other generation tasks, report task-specific scores such as BLEU, ROUGE, METEOR, BERTScore, and chrF, plus a model-graded or human-evaluation pass for tasks where automatic metrics are known to correlate poorly with quality. For factual tasks, report exact-match and $F_1$ against a reference, and consider a contamination check (looking for the test items in the training data).
+\textit{Language models.} Report perplexity (the exponential of the per-token cross-entropy) on a held-out corpus for autoregressive language modeling. For machine translation, summarization, and other generation tasks, report task-specific scores such as BLEU, ROUGE, METEOR, BERTScore, and chrF, plus a model-graded or human-evaluation pass for tasks where automatic metrics are known to correlate poorly with quality. For factual tasks, report exact-match and $F_1$ against a reference, and consider a contamination check (looking for the test items in the training data). Contamination is a particular concern for evaluations of foundation models trained on web-scale corpora that may already include the benchmark; report the contamination check and, where automatic metrics are known to correlate poorly with quality, supplement with model-graded or human evaluation.
 
 \textit{Detection and segmentation.} Report intersection-over-union (IoU), mean average precision at IoU thresholds (mAP\@0.5, mAP\@[.5:.95]), and per-class AP.
 
@@ -560,7 +794,7 @@ A paper is reproducible to the extent that an independent reader, with reasonabl
     \item release the code and the workload-generation scripts.
 \end{itemize}
 
-A reproducibility appendix or artifact submission costs little after the fact and substantially raises the credibility of the result.
+A reproducibility appendix or artifact submission costs little after the fact and substantially raises the credibility of the result. The NeurIPS reproducibility program report \citep{pineau2021reproducibility} is a useful checklist source for ML work.
 
 \section{A Minimal Statistical Toolkit}
 \label{sec:toolkit}

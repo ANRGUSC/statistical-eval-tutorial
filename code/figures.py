@@ -3,8 +3,11 @@ figures.py - generate every figure in stateval.tex from a single FIFO vs SRPT
 simulation. The tutorial is self-reproducing: rerunning this script regenerates
 every figure used in the paper.
 
-Usage:
-    python figures.py            # writes PDFs to ./figs/
+Usage (from the repo root):
+    python code/figures.py             # writes PDFs to paper/figs/
+
+Or from inside code/:
+    cd code && python figures.py       # same effect, resolves ../paper/figs/
 
 Dependencies: numpy, scipy, matplotlib.
 Tested on Python 3.12, numpy 2.x, scipy 1.17, matplotlib 3.10.
@@ -20,7 +23,10 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from scipy import stats
 
-FIGDIR = "figs"
+# Resolve paper/figs/ relative to this file, so the script works whether it is
+# invoked from the repo root or from inside code/.
+HERE = os.path.dirname(os.path.abspath(__file__))
+FIGDIR = os.path.normpath(os.path.join(HERE, "..", "paper", "figs"))
 os.makedirs(FIGDIR, exist_ok=True)
 
 # Consistent figure styling.
@@ -48,19 +54,23 @@ class RunResult:
 
 
 def simulate(policy: str, rho: float, n_jobs: int, pareto_alpha: float,
-             rng: np.random.Generator) -> RunResult:
-    """Single-server queue with Poisson arrivals and Pareto job sizes.
+             rng: np.random.Generator, x_max: float = 1e3) -> RunResult:
+    """Single-server queue with Poisson arrivals and truncated-Pareto job sizes.
 
     Service rate is normalized to 1; arrival rate = rho. Pareto sizes use the
-    Lomax form with shape `pareto_alpha` and mean 1 when alpha > 1.
+    Lomax form with shape `pareto_alpha`, truncated at `x_max` so the variance
+    is finite even for alpha <= 2 (M/G/1 mean response time then exists).
     """
     if policy not in ("FIFO", "SRPT"):
         raise ValueError(policy)
 
-    # Pareto with mean 1 (Lomax shifted, alpha > 1 needed for finite mean).
-    # x_m chosen so that E[X] = x_m * alpha / (alpha - 1) = 1.
-    x_m = (pareto_alpha - 1) / pareto_alpha
-    sizes = (x_m / (1 - rng.random(n_jobs)) ** (1 / pareto_alpha))
+    # Truncated Pareto. x_m is chosen so the *truncated* mean is 1, so rho
+    # remains the offered load.
+    x_m_un = (pareto_alpha - 1) / pareto_alpha
+    raw = x_m_un / (1 - rng.random(n_jobs)) ** (1 / pareto_alpha)
+    sizes = np.minimum(raw, x_max)
+    # Renormalize so the truncated sample mean is ~1 (preserves rho semantics).
+    sizes = sizes / sizes.mean()
 
     # Poisson arrivals with rate rho (mean service = 1, so rho = arrival rate).
     interarrivals = rng.exponential(1.0 / rho, n_jobs)
