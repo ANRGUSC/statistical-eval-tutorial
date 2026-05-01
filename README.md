@@ -54,10 +54,46 @@ Poisson arrivals and Pareto job sizes.
 | `stateval.pdf` | Compiled tutorial. |
 | `figures.py` | Single Python script that regenerates every figure and the headline numbers from a seeded simulation. |
 | `figs/` | Generated PDF figures. |
+| `skill/stateval-review/` | A Claude Code skill that audits a paper draft against the tutorial's principles and writes a prioritized review. |
 
 The tutorial is itself reproducible: rerunning `figures.py` regenerates
 every figure used in the paper, and recompiling the LaTeX source produces
 the PDF.
+
+## Companion Claude Code skill
+
+The repository ships with a Claude Code skill called **`stateval-review`**
+that lets a student point Claude at their own paper draft (`.tex` or
+`.pdf`) and get back a structured review document grounded in the
+tutorial's principles. The skill produces `stateval-review.md` in the
+working directory: a list of strengths, prioritized findings (Critical /
+Important / Nice-to-have) with quote-and-suggest fixes, a checklist
+pass/fail grid, and pointers back to the relevant tutorial sections.
+
+Install:
+
+```bash
+git clone https://github.com/ANRGUSC/statistical-eval-tutorial.git
+cp -r statistical-eval-tutorial/skill/stateval-review ~/.claude/skills/
+```
+
+Use:
+
+```
+/stateval-review path/to/paper.tex
+```
+
+The skill audits 24 categories: hypothesis quality, baseline strength,
+seed counts, unit of analysis, variability reporting, CI construction,
+test choice and assumption checking, effect size, regression
+diagnostics, multi-factor design, multiple comparisons, out-of-sample
+validation, ablation studies, latency pitfalls, figure design, seed
+discipline, sample size, time-correlated data, simulation V&V,
+ML-metric matching, reproducibility, equivalence claims, and primary
+vs. secondary metric pre-registration.
+
+The skill does **not** edit the student's paper; it writes a separate
+review file the student then acts on.
 
 ## Building from source
 
