@@ -308,28 +308,33 @@ Tutorial: §Linear Regression and Correlation.
 
 ---
 
-## 13. Multi-factor design: OFAT screening, factorial for headlines
+## 13. Multi-factor design: OFAT for exploration, factorial when interactions matter
 
-**Principle.** OFAT (one-factor-at-a-time) sweeps are a screening
-step; the headline evaluation uses a factorial sweep over at least
-the most-likely-to-interact factors and reports an interaction plot.
+**Principle.** OFAT (one-factor-at-a-time) sweeps are a low-cost
+way to expose individual-factor effects, but they cannot detect
+interactions; when two or more factors are likely to interact, a
+factorial sweep is needed, and results must be presented per regime
+rather than averaged.
 
 **Symptoms.**
-- The evaluation is one OFAT sweep at "default" parameters,
-  presented as the headline.
-- Sweep over load with everything else fixed; sweep over size
-  distribution with everything else fixed; the two are not crossed.
 - Single working point (e.g., one load, one workload) reported as
-  the headline.
+  the headline with no parameter sweep.
+- Sweep over load with everything else fixed; sweep over size
+  distribution with everything else fixed; the two are not crossed
+  despite a plausible interaction.
 - No interaction plot; differences across regimes summarized only
-  as averages.
+  as averages, hiding where the method wins and where it does not.
+- Results averaged across regimes when the method's advantage
+  depends on a specific regime combination.
 
 **Fix.** Run a $2 \times 2$ or $3 \times 3$ factorial over the two
 factors most likely to interact (e.g., load $\times$ size
 distribution); plot as an interaction plot; report per-cell
-comparisons and the interaction effect. Use fractional factorial or
-Latin-square designs when the full grid is too expensive. Tutorial:
-§Multi-factor Experiments.
+comparisons and the interaction effect. Use OFAT sweeps to identify
+which factors matter first, then follow up with a factorial over the
+interacting factors. Use fractional factorial or Latin-square designs
+when the full grid is too expensive. Tutorial: §Multi-factor
+Experiments.
 
 ---
 
